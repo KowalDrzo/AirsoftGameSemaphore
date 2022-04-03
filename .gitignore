@@ -30,3 +30,7 @@
 *.exe
 *.out
 *.app
+
+Drivers
+Debug
+.settings
