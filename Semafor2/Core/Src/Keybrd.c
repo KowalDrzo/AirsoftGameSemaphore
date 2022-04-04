@@ -24,7 +24,7 @@ void structureInit(void) {
 	asgClock.ledState = 0;
 	asgClock.ledGoinBack = 0;
 
-	asgClock.potenValue = 1500;
+	asgClock.potenValue = GAME_RANGE / 2;
 	asgClock.gameModeUp = 0;
 	asgClock.gameStarted = 0;
 }

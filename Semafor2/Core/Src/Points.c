@@ -104,7 +104,7 @@ void checkPoint(void) {
 
 	if(asgClock.potenValue < 100) addPoint(RED);
 
-	if(asgClock.potenValue > 2900) addPoint(BLUE);
+	if(asgClock.potenValue > GAME_RANGE - 100) addPoint(BLUE);
 
 	if(asgClock.gameStarted) {
 

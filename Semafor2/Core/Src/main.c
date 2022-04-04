@@ -129,7 +129,7 @@ int main(void)
 
 
 	  if(asgClock.potenValue < 0) asgClock.potenValue = 0;
-	  if(asgClock.potenValue > 3000) asgClock.potenValue = 3000;
+	  if(asgClock.potenValue > GAME_RANGE) asgClock.potenValue = GAME_RANGE;
 
 
     /* USER CODE END WHILE */
@@ -207,4 +207,3 @@ void assert_failed(uint8_t *file, uint32_t line)
 }
 #endif /* USE_FULL_ASSERT */
 
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

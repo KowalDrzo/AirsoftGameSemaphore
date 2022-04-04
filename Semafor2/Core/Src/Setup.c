@@ -195,7 +195,7 @@ void sterLed(void) {
 	if(asgClock.ledState <= 0 && asgClock.ledGoinBack) return;
 
 	if(asgClock.potenValue < 100) ledControl(asgClock.ledState, 0, 0);
-	else if(asgClock.potenValue > 2900) ledControl(0, 0, asgClock.ledState);
+	else if(asgClock.potenValue > GAME_RANGE - 100) ledControl(0, 0, asgClock.ledState);
 	else {
 		int ledB = asgClock.ledState;
 		if(przyciemniony) ledB /= 20;
