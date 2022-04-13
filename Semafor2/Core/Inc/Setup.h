@@ -19,6 +19,6 @@ void ledControl(uint16_t R, uint16_t G, uint16_t B);
 
 void sterLed(void);
 
-void setBrightness(void);
+void setGameMode(void);
 
 #endif /* INC_SETUP_H_ */

@@ -18,7 +18,7 @@
 
 void structureInit(void) {
 
-	asgClock.bright = 1;
+	asgClock.bright = 5;
 	asgClock.blueTime = 0;
 	asgClock.redTime = 0;
 	asgClock.ledState = 0;

@@ -41,7 +41,7 @@ void setupAll(void) {
 	}
 	ledControl(0, 0, 0);
 
-	setBrightness();
+	setGameMode();
 
 	if(!asgClock.gameModeUp) {
 		setTime(RED);
@@ -156,7 +156,6 @@ void setAllTime(void) {
 
 	asgClock.redTime = 1;
 	asgClock.blueTime = 1;
-	asgClock.bright -= 5;
 }
 
 /***************************************************************************************/
@@ -210,10 +209,11 @@ void sterLed(void) {
 
 /***************************************************************************************/
 
-void setBrightness(void) {
+void setGameMode(void) {
 
 	uint16_t stare = TIM2->CNT;
-	unsigned char Tab[] = {0, 0, 17, 17};
+	unsigned char Tab[] = {17, 0, 17, 17};
+	tm1637SetBrightness(asgClock.bright);
 
 	while(!Button) {
 
@@ -225,19 +225,15 @@ void setBrightness(void) {
 
 
 		if(asgClock.bright < 1) asgClock.bright = 1;
-		if(asgClock.bright > 10) asgClock.bright = 10;
+		if(asgClock.bright > 2) asgClock.bright = 2;
 
 
-		if(asgClock.bright < 6) {
-			tm1637SetBrightness(asgClock.bright);
+		if(asgClock.bright == 1) {
 			asgClock.gameModeUp = 0;
-			Tab[0] = asgClock.bright;
 			Tab[1] = 10;
 		}
 		else {
-			tm1637SetBrightness(asgClock.bright - 5);
 			asgClock.gameModeUp = 1;
-			Tab[0] = asgClock.bright - 5;
 			Tab[1] = 11;
 		}
 
@@ -248,6 +244,7 @@ void setBrightness(void) {
 
 	buzzerBeep(2);
 	HAL_Delay(BUTTON_DELAY);
+	asgClock.bright = 5;
 	Button = 0;
 }
 
