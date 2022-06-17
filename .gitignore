@@ -34,3 +34,5 @@
 Drivers
 Debug
 .settings
+.vscode
+.pio
