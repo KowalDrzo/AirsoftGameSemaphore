@@ -7,14 +7,15 @@ Tasks tasks;
 
 void Tasks::clearMem() {
 
-    /*for (uint8_t i = 0; i < FLIGHTS_IN_MEM; i++) {
+    for (uint8_t i = 0; i < RESULTS_IN_MEM; i++) {
 
-        glob.memory.lastFlightIndex = 0;
-        glob.memory.lastFlightNum = 0;
-        glob.memory.flight[i].num = 0;
-        glob.memory.flight[i].apogee = 0;
-        glob.memory.flight[i].maxSpeed = 0;
-    }*/
+        glob.memory.lastResultIndex = 0;
+        glob.memory.lastResultNum = 0;
+        glob.memory.result[i].num = 0;
+        glob.memory.result[i].mode = 0;
+        glob.memory.result[i].redTime = 0;
+        glob.memory.result[i].bluTime = 0;
+    }
 
     EEPROM.put(0, glob.memory);
     EEPROM.commit();
@@ -24,15 +25,16 @@ void Tasks::clearMem() {
 
 void Tasks::updateDataBase() {
 
-    /*glob.memory.lastFlightIndex++;
-    if (glob.memory.lastFlightIndex > FLIGHTS_IN_MEM) glob.memory.lastFlightIndex = 0;
-    uint8_t flid = glob.memory.lastFlightIndex;
+    glob.memory.lastResultIndex++;
+    if (glob.memory.lastResultIndex > RESULTS_IN_MEM) glob.memory.lastResultIndex = 0;
+    uint8_t reid = glob.memory.lastResultIndex;
 
-    glob.memory.lastFlightNum++;
+    glob.memory.lastResultNum++;
 
-    glob.memory.flight[flid].num = glob.memory.lastFlightNum;
-    glob.memory.flight[flid].apogee = glob.apogee;
-    glob.memory.flight[flid].maxSpeed = glob.maxSpeed;*/
+    glob.memory.result[reid].num = glob.memory.lastResultNum;
+    glob.memory.result[reid].mode = 0; // TODO
+    glob.memory.result[reid].redTime = 0; // TODO
+    glob.memory.result[reid].bluTime = 0; // TODO
 
     EEPROM.put(0, glob.memory);
     EEPROM.commit();

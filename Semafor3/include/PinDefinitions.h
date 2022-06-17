@@ -6,7 +6,7 @@
 #define RED_CLK_PIN 12
 #define RED_DIO_PIN 14
 #define BLU_CLK_PIN 27
-#define BLU_CLK_PIN 26
+#define BLU_DIO_PIN 26
 
 #define LED_R_PIN 25
 #define LED_G_PIN 33
