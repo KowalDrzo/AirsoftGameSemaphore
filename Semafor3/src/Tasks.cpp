@@ -4,6 +4,38 @@ Tasks tasks;
 TM1637 redDisplay(RED_CLK_PIN, RED_DIO_PIN);
 TM1637 bluDisplay(BLU_CLK_PIN, BLU_DIO_PIN);
 
+void Tasks::init() {
+
+    ESP32Encoder::useInternalWeakPullResistors=UP;
+    glob.encoder.attachHalfQuad(ENCODER_A_PIN, ENCODER_B_PIN);
+    glob.encoder.attachButtonPin(ENCODER_SW_PIN);
+}
+
+/*********************************************************************/
+
+void Tasks::setGameMode() {
+
+}
+
+/*********************************************************************/
+
+void Tasks::setRedTime() {
+
+}
+
+/*********************************************************************/
+
+void Tasks::setBlueTime() {
+
+}
+
+/*********************************************************************/
+
+void Tasks::setUpTime() {
+
+
+}
+
 /*********************************************************************/
 
 void Tasks::clearMem() {

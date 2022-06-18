@@ -2,6 +2,7 @@
 #define GLOBALS_H
 
 #include "DataStructs.h"
+#include "EncoredWithButton.h"
 
 struct GlobalAggregator {
 
@@ -13,6 +14,8 @@ struct GlobalAggregator {
     int16_t redTime;
     int16_t blueTime;
     int16_t encoderVal;
+
+    EncoredWithButton encoder;
 };
 
 extern GlobalAggregator glob;

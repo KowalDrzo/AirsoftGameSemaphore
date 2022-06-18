@@ -6,16 +6,13 @@
 #include <TM1637.h>
 
 #include "PinDefinitions.h"
-#include "Timer.h"
 #include "Globals.h"
 
 class Tasks {
 
-    Timer clockTimer;
-    Timer darkModeTimer;
-
 public:
 
+    void init();
     void setGameMode();
     void setRedTime();
     void setBlueTime();
