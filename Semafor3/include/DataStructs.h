@@ -3,6 +3,7 @@
 
 #define SEMAFOR3_ID 1
 #define RESULTS_IN_MEM 30
+#define GAME_RANGE 1000
 
 #include <stdint.h>
 
@@ -10,6 +11,13 @@ enum GameMode {
 
     TIME_DOWN = 0,
     TIME_UP
+};
+
+enum FlagState {
+
+    NEUTRAL = 0,
+    RED_TEAM,
+    BLUE_TEAM
 };
 
 struct GameResult {
@@ -29,6 +37,7 @@ struct Memory {
     uint8_t initGameMode;
     uint16_t initRedTime;
     uint16_t initBluTime;
+    uint16_t initUpTime;
 };
 
 #endif

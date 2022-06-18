@@ -1,7 +1,8 @@
 #include "Tasks.h"
 
 Tasks tasks;
-
+TM1637 redDisplay(RED_CLK_PIN, RED_DIO_PIN);
+TM1637 bluDisplay(BLU_CLK_PIN, BLU_DIO_PIN);
 
 /*********************************************************************/
 
