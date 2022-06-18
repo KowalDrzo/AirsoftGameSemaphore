@@ -11,6 +11,8 @@ class Loops {
 
 public:
 
+    static void ledLoop();
+    void semaphoreLoop();
 };
 
 extern Loops loops;

@@ -15,8 +15,12 @@ void setup() {
         tasks.setBlueTime();
     }
     else tasks.setUpTime();
+
+    xTaskCreate((TaskFunction_t)Loops::ledLoop, "Led Loop Task", 4098, NULL, 2, NULL);
 }
 
 void loop() {
 
+    loops.semaphoreLoop();
+    vTaskDelay(1);
 }

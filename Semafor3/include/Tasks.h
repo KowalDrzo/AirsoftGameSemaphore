@@ -18,6 +18,8 @@ public:
     void setBlueTime();
     void setUpTime();
 
+    void setLed(uint16_t R, uint16_t G, uint16_t B);
+
     void updateDataBase();
     void clearMem();
 };

@@ -38,6 +38,13 @@ void Tasks::setUpTime() {
 
 /*********************************************************************/
 
+void Tasks::setLed(uint16_t R, uint16_t G, uint16_t B) {
+
+
+}
+
+/*********************************************************************/
+
 void Tasks::clearMem() {
 
     for (uint8_t i = 0; i < RESULTS_IN_MEM; i++) {
