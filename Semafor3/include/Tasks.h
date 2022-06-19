@@ -7,10 +7,13 @@
 
 #include "PinDefinitions.h"
 #include "Globals.h"
+#include "Timer.h"
 
 class Tasks {
 
     uint16_t sec2minSec(int16_t sec);
+    uint8_t requiredOffset(int16_t sec);
+    Timer colonTimer;
 
 public:
 

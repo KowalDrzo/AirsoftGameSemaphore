@@ -14,6 +14,9 @@ void Loops::ledLoop() {
 
 void Loops::semaphoreLoop() {
 
+    EEPROM.put(0, glob.memory);
+    EEPROM.commit();
+
     clockTimer.start(1000);
     darkModeTimer.start(10000);
 

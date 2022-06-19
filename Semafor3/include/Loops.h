@@ -2,7 +2,6 @@
 #define LOOPS_H
 
 #include "Tasks.h"
-#include "Timer.h"
 
 class Loops {
 

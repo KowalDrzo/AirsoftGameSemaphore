@@ -4,14 +4,26 @@ Tasks tasks;
 TM1637 redDisplay(RED_CLK_PIN, RED_DIO_PIN);
 TM1637 bluDisplay(BLU_CLK_PIN, BLU_DIO_PIN);
 
-uint16_t sec2minSec(int16_t sec) {
+uint16_t Tasks::sec2minSec(int16_t sec) {
 
     return sec/60*100 + sec%60;
 }
 
 /*********************************************************************/
 
+uint8_t Tasks::requiredOffset(int16_t sec) {
+
+    if (sec >= 600) return 0;
+    if (sec >= 60)  return 1;
+    if (sec >= 10)  return 2;
+    return 3;
+}
+
+/*********************************************************************/
+
 void Tasks::init() {
+
+    setCpuFrequencyMhz(10);
 
     ledcSetup(LED_R_PWM_CHANNEL, 1000, 10);
     ledcSetup(LED_G_PWM_CHANNEL, 1000, 10);
@@ -22,7 +34,7 @@ void Tasks::init() {
     ledcAttachPin(LED_B_PIN, LED_B_PWM_CHANNEL);
 
     int16_t i = 0;
-    for (; i < 512; i++) {
+    for (; i < 320; i++) {
         setLed(0, i, 0);
         vTaskDelay(2);
     }
@@ -87,20 +99,27 @@ void Tasks::setGameMode() {
 void Tasks::setRedTime() {
 
     glob.redTime = glob.memory.initRedTime;
+    colonTimer.start(500);
 
     while (!glob.encoder.wasClicked()) {
 
         int8_t dir = glob.encoder.wasTurned();
-        if (dir > 0 && glob.redTime < 6039)     glob.redTime += 10;
-        else if (dir < 0 && glob.redTime > 10)   glob.redTime -= 10;
+        if (dir > 0 && glob.redTime < 5940)     glob.redTime += 10;
+        else if (dir < 0 && glob.redTime > 10)  glob.redTime -= 10;
 
-        redDisplay.display(glob.redTime);
+        redDisplay.display(sec2minSec(glob.redTime), true, false, requiredOffset(glob.redTime));
 
-        vTaskDelay(10);
+        if (colonTimer.check()) {
+            redDisplay.switchColon();
+            redDisplay.refresh();
+        }
+
+        vTaskDelay(1);
     }
 
     setLed(100, 0, 0);
     glob.memory.initRedTime = glob.redTime;
+    redDisplay.colonOn();
     vTaskDelay(500);
     setLed(0, 0, 0);
 }
@@ -109,13 +128,68 @@ void Tasks::setRedTime() {
 
 void Tasks::setBlueTime() {
 
+    glob.blueTime = glob.memory.initBluTime;
+    colonTimer.start(500);
+
+    while (!glob.encoder.wasClicked()) {
+
+        int8_t dir = glob.encoder.wasTurned();
+        if (dir > 0 && glob.blueTime < 5940)     glob.blueTime += 10;
+        else if (dir < 0 && glob.blueTime > 10)  glob.blueTime -= 10;
+
+        bluDisplay.display(sec2minSec(glob.blueTime), true, false, requiredOffset(glob.blueTime));
+
+        if (colonTimer.check()) {
+            bluDisplay.switchColon();
+            bluDisplay.refresh();
+        }
+
+        vTaskDelay(1);
+    }
+
+    setLed(0, 0, 100);
+    glob.memory.initBluTime = glob.blueTime;
+    bluDisplay.colonOn();
+    vTaskDelay(500);
+    setLed(0, 0, 0);
 }
 
 /*********************************************************************/
 
 void Tasks::setUpTime() {
 
+    int16_t upTime = glob.memory.initUpTime;
+    colonTimer.start(500);
 
+    while (!glob.encoder.wasClicked()) {
+
+        int8_t dir = glob.encoder.wasTurned();
+        if (dir > 0 && upTime < 5940)     upTime += 10;
+        else if (dir < 0 && upTime > 10)  upTime -= 10;
+
+        redDisplay.display(sec2minSec(upTime), true, false, requiredOffset(upTime));
+        bluDisplay.display(sec2minSec(upTime), true, false, requiredOffset(upTime));
+
+        if (colonTimer.check()) {
+
+            redDisplay.switchColon();
+            bluDisplay.switchColon();
+            redDisplay.refresh();
+            bluDisplay.refresh();
+        }
+
+        vTaskDelay(1);
+    }
+
+    setLed(0, 100, 0);
+
+    glob.memory.initUpTime = upTime;
+    glob.redTime =  upTime;
+    glob.blueTime = upTime;
+    bluDisplay.colonOn();
+
+    vTaskDelay(500);
+    setLed(0, 0, 0);
 }
 
 /*********************************************************************/
