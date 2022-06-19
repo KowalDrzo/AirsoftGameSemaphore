@@ -10,6 +10,8 @@
 
 class Tasks {
 
+    uint16_t sec2minSec(int16_t sec);
+
 public:
 
     void init();

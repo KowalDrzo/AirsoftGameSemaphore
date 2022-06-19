@@ -4,6 +4,7 @@
 #define SEMAFOR3_ID 1
 #define RESULTS_IN_MEM 30
 #define GAME_RANGE 1000
+#define BRIGHTNESS 5
 
 #include <stdint.h>
 
@@ -34,7 +35,7 @@ struct Memory {
     uint16_t lastResultNum;
     GameResult result[RESULTS_IN_MEM];
 
-    uint8_t initGameMode;
+    uint8_t  gameMode;
     uint16_t initRedTime;
     uint16_t initBluTime;
     uint16_t initUpTime;
