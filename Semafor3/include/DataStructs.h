@@ -3,7 +3,8 @@
 
 #define SEMAFOR3_ID 1
 #define RESULTS_IN_MEM 30
-#define GAME_RANGE 1000
+#define GAME_RANGE 300
+#define RANGE_OFFSET 50
 #define BRIGHTNESS 5
 
 #include <stdint.h>

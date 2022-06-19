@@ -25,6 +25,9 @@ public:
 
     void setLed(uint16_t R, uint16_t G, uint16_t B);
 
+    void addPoint(uint8_t team);
+    bool checkEnd();
+
     void updateDataBase();
     void clearMem();
 };

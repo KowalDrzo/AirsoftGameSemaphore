@@ -184,9 +184,13 @@ void Tasks::setUpTime() {
     setLed(0, 100, 0);
 
     glob.memory.initUpTime = upTime;
-    glob.redTime =  upTime;
-    glob.blueTime = upTime;
+    glob.redTime =  0;
+    glob.blueTime = 0;
+
+    redDisplay.colonOn();
     bluDisplay.colonOn();
+    redDisplay.display(sec2minSec(glob.redTime), true, false, requiredOffset(glob.redTime));
+    bluDisplay.display(sec2minSec(glob.blueTime), true, false, requiredOffset(glob.blueTime));
 
     vTaskDelay(500);
     setLed(0, 0, 0);
@@ -199,6 +203,30 @@ void Tasks::setLed(uint16_t R, uint16_t G, uint16_t B) {
     ledcWrite(LED_R_PWM_CHANNEL, R);
     ledcWrite(LED_G_PWM_CHANNEL, G);
     ledcWrite(LED_B_PWM_CHANNEL, B);
+}
+
+/*********************************************************************/
+
+void Tasks::addPoint(uint8_t team) {
+
+    int8_t point = -1;
+    if (glob.memory.gameMode == TIME_UP) point = 1;
+
+    switch (team) {
+    case RED_TEAM:  glob.redTime += point;  break;
+    case BLUE_TEAM: glob.blueTime += point; break;
+    }
+
+    redDisplay.display(sec2minSec(glob.redTime), true, false, requiredOffset(glob.redTime));
+    bluDisplay.display(sec2minSec(glob.blueTime), true, false, requiredOffset(glob.blueTime));
+}
+
+/*********************************************************************/
+
+bool Tasks::checkEnd() {
+    
+    // TODO
+    return false;
 }
 
 /*********************************************************************/
@@ -222,9 +250,9 @@ void Tasks::updateDataBase() {
     glob.memory.lastResultNum++;
 
     glob.memory.result[reid].num = glob.memory.lastResultNum;
-    glob.memory.result[reid].mode = 0; // TODO
-    glob.memory.result[reid].redTime = 0; // TODO
-    glob.memory.result[reid].bluTime = 0; // TODO
+    glob.memory.result[reid].mode = glob.memory.gameMode;
+    glob.memory.result[reid].redTime = glob.redTime;
+    glob.memory.result[reid].bluTime = glob.blueTime;
 
     EEPROM.put(0, glob.memory);
     EEPROM.commit();
