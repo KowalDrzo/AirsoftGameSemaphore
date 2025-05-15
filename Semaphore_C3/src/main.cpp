@@ -1,6 +1,3 @@
-#include <Arduino.h>
-#include <TM1637.h>
-
 #include "pinout.h"
 #include "keybrd.h"
 #include "points.h"
@@ -8,22 +5,10 @@
 
 TM1637 tmRed(RED_CLK_PIN, RED_DIO_PIN);
 TM1637 tmBlu(BLU_CLK_PIN, BLU_DIO_PIN);
-
-typedef struct {
-
-	short int redTime;
-	short int blueTime;
-	int8_t bright;
-	short int potenValue;
-
-	short int ledState;
-	_Bool ledGoinBack;
-	short int gameModeUp;
-	_Bool gameStarted;
-
-} airsoftClock;
-
-airsoftClock asgClock;
+AirsoftClock asgClock;
+uint32_t tickStart;
+uint16_t stare;
+int czasJasny = 0;
 
 void setup() {
 
@@ -50,13 +35,9 @@ void setup() {
     tmBlu.display(2137);
     delay(1000);*/
 
-
-
-    int czasJasny = 0;
-
     setupAll();
-    uint32_t tickStart = HAL_GetTick();
-    uint16_t stare = TIM2->CNT;
+    tickStart = millis();
+    stare = 0; // TODO
 }
 
 void loop() {
@@ -74,31 +55,31 @@ void loop() {
     digitalWrite(BUZZER_PIN, 0);
     delay(2000);*/
 
-    if(HAL_GetTick() - tickStart > 1000 * uwTickFreq) {
+    if(millis() - tickStart > 1000) {
 
         checkPoint(); // Sprawdzanie, która drużyna przejęła cel i reagowanie na to
         displayDark(&czasJasny);
 
-        tickStart = HAL_GetTick();
+        tickStart = millis();
     }
 
     sterLed();
 
-    int TimerDif = TIM2->CNT - stare;
-    stare = TIM2->CNT;
+    int TimerDif = 0; // TODO
+    stare = 0; // TODO
 
     if(TimerDif) {
 
         if(przyciemniony) {
 
             przyciemniony = 0;
-            tm1637SetBrightness(asgClock.bright);
+            tmRed.setBrightness(asgClock.bright);
+            tmBlu.setBrightness(asgClock.bright);
         }
         czasJasny = 20;
     }
 
     asgClock.potenValue -= (int8_t)TimerDif;
-
 
     if(asgClock.potenValue < 0) asgClock.potenValue = 0;
     if(asgClock.potenValue > GAME_RANGE) asgClock.potenValue = GAME_RANGE;

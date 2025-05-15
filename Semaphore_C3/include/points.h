@@ -1,9 +1,8 @@
 #ifndef POINTS_H
 #define POINTS_H
 
-#include <stdbool.h>
-
-_Bool przyciemniony;
+#include <Arduino.h>
+#include "setup.h"
 
 void addPoint(_Bool ifRed);
 

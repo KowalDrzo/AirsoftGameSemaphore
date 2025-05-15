@@ -3,6 +3,8 @@
 #define BUTTON_DELAY 500
 #define GAME_MODES 2
 
+_Bool przyciemniony;
+
 void setTime(_Bool ifRed);
 void setAllTime(void);
 void buzzerBeep(int value);
@@ -18,19 +20,20 @@ void setupAll(void) {
 	uint8_t i;
 	structureInit();
 
-	HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
+	/*HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
 	HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_2);
 	HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_3);
-	HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_ALL);
+	HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_ALL);*/
+	// TODO
 
 	for(i = 0; i<250; i++) {
 		ledControl(0, i, 0);
-		HAL_Delay(3);
+		vTaskDelay(3);
 	}
 
 	for(; i > 0; i--) {
 		ledControl(0, i, 0);
-		HAL_Delay(3);
+		vTaskDelay(3);
 	}
 	ledControl(0, 0, 0);
 
@@ -45,12 +48,42 @@ void setupAll(void) {
 	if(!asgClock.redTime) asgClock.redTime++;
 	if(!asgClock.blueTime) asgClock.blueTime++;
 
-	HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, 1);
-	HAL_Delay(500);
-	HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, 0);
+	digitalWrite(BUZZER_PIN, 1);
+	vTaskDelay(500);
+	digitalWrite(BUZZER_PIN, 0);
 
-	tm1637DisplayDecimal(int2Time(asgClock.redTime), 1, RED);
-	tm1637DisplayDecimal(int2Time(asgClock.blueTime), 1, BLUE);
+	tmRed.display(int2Time(asgClock.redTime));
+	tmRed.colonOn();
+	tmBlu.display(int2Time(asgClock.blueTime));
+	tmBlu.colonOn();
+}
+
+/***************************************************************************************/
+
+/*!
+ * \brief Funkcja dispBlink służy do migania wyświetlaczem
+ *
+ * \param ifRed - czy funkcja ma dotyczyć wyświetlacza czerwonego, czy może niebieskiego.
+ *
+ * Funkcja nie zwraca żadnych wartości.
+ */
+
+void dispBlink(_Bool ifRed) {
+
+	if (ifRed) {
+
+		tmRed.setBrightness(0);
+		delay(100);
+		tmRed.setBrightness(asgClock.bright);
+		delay(250);
+	}
+	else {
+
+		tmBlu.setBrightness(0);
+		delay(100);
+		tmBlu.setBrightness(asgClock.bright);
+		delay(250);
+	}
 }
 
 /***************************************************************************************/
@@ -65,17 +98,17 @@ void setupAll(void) {
 
 void setTime(_Bool ifRed) {
 
-	HAL_Delay(250);
-	uint16_t stare = TIM2->CNT;
+	vTaskDelay(250);
+	uint16_t stare = 0; // TODO
 
 	dispBlink(ifRed);
 
-	uint32_t tickStart = HAL_GetTick();
+	uint32_t tickStart = millis();
 	while(!Button) {
 
 
-		int TimerDif = TIM2->CNT - stare;
-		stare = TIM2->CNT;
+		int TimerDif = 0; // TODO
+		stare = 0; // TODO
 
 		if(ifRed) asgClock.redTime -= ((int8_t)TimerDif)*10;
 		else asgClock.blueTime -= ((int8_t)TimerDif)*10;
@@ -89,22 +122,34 @@ void setTime(_Bool ifRed) {
 
 
 
-		if(HAL_GetTick() - tickStart > 250 * uwTickFreq && HAL_GetTick() - tickStart <= 500 * uwTickFreq) {
+		if(millis() - tickStart > 250 && millis() - tickStart <= 500) {
 
-			if(ifRed) tm1637DisplayDecimal(int2Time(asgClock.redTime), 0, ifRed);
-			else tm1637DisplayDecimal(int2Time(asgClock.blueTime), 0, ifRed);
+			if(ifRed) {
+				tmRed.display(int2Time(asgClock.redTime));
+				tmRed.colonOff();
+			}
+			else {
+				tmBlu.display(int2Time(asgClock.blueTime));
+				tmBlu.colonOff();
+			}
 		}
 
-		else if(HAL_GetTick() - tickStart > 500 * uwTickFreq) {
+		else if(millis() - tickStart > 500) {
 
-			if(ifRed) tm1637DisplayDecimal(int2Time(asgClock.redTime), 1, ifRed);
-			else tm1637DisplayDecimal(int2Time(asgClock.blueTime), 1, ifRed);
-			tickStart = HAL_GetTick();
+			if(ifRed) {
+				tmRed.display(int2Time(asgClock.redTime));
+				tmRed.colonOn();
+			}
+			else {
+				tmBlu.display(int2Time(asgClock.blueTime));
+				tmBlu.colonOn();
+			}
+			tickStart = millis();
 		}
 	}
 
 	buzzerBeep(2);
-	HAL_Delay(BUTTON_DELAY);
+	vTaskDelay(BUTTON_DELAY);
 	Button = 0;
 }
 
@@ -112,15 +157,15 @@ void setTime(_Bool ifRed) {
 
 void setAllTime(void) {
 
-	HAL_Delay(250);
-	uint16_t stare = TIM2->CNT;
+	vTaskDelay(250);
+	uint16_t stare = 0; // TODO
 
-	uint32_t tickStart = HAL_GetTick();
+	uint32_t tickStart = millis();
 	while(!Button) {
 
 
-		int TimerDif = TIM2->CNT - stare;
-		stare = TIM2->CNT;
+		int TimerDif = 0; // TODO
+		stare = 0; // TODO
 
 		asgClock.gameModeUp -= ((int8_t)TimerDif)*10;
 
@@ -129,22 +174,26 @@ void setAllTime(void) {
 		if(asgClock.gameModeUp > 5940) asgClock.gameModeUp = 5940;
 
 
-		if(HAL_GetTick() - tickStart > 250 * uwTickFreq && HAL_GetTick() - tickStart <= 500 * uwTickFreq) {
+		if(millis() - tickStart > 250 && millis() - tickStart <= 500) {
 
-			tm1637DisplayDecimal(int2Time(asgClock.gameModeUp), 0, RED);
-			tm1637DisplayDecimal(int2Time(asgClock.gameModeUp), 0, BLUE);
+			tmRed.display(int2Time(asgClock.gameModeUp));
+			tmRed.colonOff();
+			tmBlu.display(int2Time(asgClock.gameModeUp));
+			tmBlu.colonOff();
 		}
 
-		else if(HAL_GetTick() - tickStart > 500 * uwTickFreq) {
+		else if(millis() - tickStart > 500) {
 
-			tm1637DisplayDecimal(int2Time(asgClock.gameModeUp), 1, RED);
-			tm1637DisplayDecimal(int2Time(asgClock.gameModeUp), 1, BLUE);
-			tickStart = HAL_GetTick();
+			tmRed.display(int2Time(asgClock.gameModeUp));
+			tmRed.colonOn();
+			tmBlu.display(int2Time(asgClock.gameModeUp));
+			tmBlu.colonOn();
+			tickStart = millis();
 		}
 	}
 
 	buzzerBeep(2);
-	HAL_Delay(BUTTON_DELAY);
+	vTaskDelay(BUTTON_DELAY);
 	Button = 0;
 
 	asgClock.redTime = 1;
@@ -167,9 +216,10 @@ void ledControl(uint16_t R, uint16_t G, uint16_t B) {
 
 	if(R <= 1000 && G <= 1000 && B <= 1000) {
 
-		__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, B);
+		/*__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, B);
 		__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_2, R);
-		__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_3, G);
+		__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_3, G);*/
+		// TODO
 	}
 }
 
@@ -195,7 +245,7 @@ void sterLed(void) {
 		ledControl(ledB, ledB, ledB);
 	}
 
-	HAL_Delay(1);
+	vTaskDelay(1);
 	if(asgClock.ledGoinBack) asgClock.ledState -= 4;
 	else asgClock.ledState += 4;
 }
@@ -204,15 +254,16 @@ void sterLed(void) {
 
 void setGameMode(void) {
 
-	uint16_t stare = TIM2->CNT;
+	uint16_t stare = 0; // TODO
 	unsigned char Tab[] = {17, 0, 17, 17};
-	tm1637SetBrightness(asgClock.bright);
+	tmRed.setBrightness(asgClock.bright);
+	tmBlu.setBrightness(asgClock.bright);
 
 	while(!Button) {
 
 
-		int TimerDif = TIM2->CNT - stare;
-		stare = TIM2->CNT;
+		int TimerDif = 0; // TODO
+		stare = 0; // TODO
 
 		asgClock.bright -= ((int8_t)TimerDif)/4;
 
@@ -230,13 +281,13 @@ void setGameMode(void) {
 			Tab[1] = 11;
 		}
 
-		tm1637DisplayTab(Tab, 0, RED);
-		tm1637DisplayTab(Tab, 0, BLUE);
-		HAL_Delay(50);
+		tmRed.displayRawBytes(Tab, 4);
+		tmBlu.displayRawBytes(Tab, 4);
+		vTaskDelay(50);
 	}
 
 	buzzerBeep(2);
-	HAL_Delay(BUTTON_DELAY);
+	vTaskDelay(BUTTON_DELAY);
 	asgClock.bright = 5;
 	Button = 0;
 }
@@ -247,10 +298,10 @@ void buzzerBeep(int value) {
 
 	for(; value > 0; value--) {
 
-		BUZZER_GPIO_Port->ODR |= BUZZER_Pin;
-		HAL_Delay(50);
-		BUZZER_GPIO_Port->ODR &= ~BUZZER_Pin;
-		HAL_Delay(50);
+		digitalWrite(BUZZER_PIN, 1);
+		vTaskDelay(50);
+		digitalWrite(BUZZER_PIN, 0);
+		vTaskDelay(50);
 	}
 
 }

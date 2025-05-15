@@ -1,6 +1,25 @@
 #include "points.h"
 
 /*!
+ * \brief Funkcja int2Time służy do konwersji liczby sekund na liczbę w formacie MMSS
+ *
+ * \param integer - liczba sekund.
+ *
+ * \return min*100+sec - czas w formacie MMSS.
+ */
+
+uint16_t int2Time(uint16_t integer) {
+
+	uint16_t min, sec;
+	min = integer / 60;
+	sec = integer % 60;
+
+	return min*100 + sec;
+}
+
+/***************************************************************************************/
+
+/*!
  * \brief Funkcja addPoint służy do odjęcia sekundy czasu odpowiedniej drużynie
  *
  * \param ifRed - czy drużyna czerwona, czy może niebieska.
@@ -32,8 +51,10 @@ void addPoint(_Bool ifRed) {
 		asgClock.gameStarted = 1;
 	}
 
-	tm1637DisplayDecimal(int2Time(asgClock.redTime), 1, RED);
-	tm1637DisplayDecimal(int2Time(asgClock.blueTime), 1, BLUE);
+	tmRed.display(int2Time(asgClock.redTime));
+	tmRed.colonOn();
+	tmBlu.display(int2Time(asgClock.blueTime));
+	tmBlu.colonOn();
 }
 
 /***************************************************************************************/
@@ -56,28 +77,33 @@ void winGame(_Bool ifRed) {
 	if(ifRed) ledControl(500, 0, 0);
 	else ledControl(0, 0, 500);
 
-	tm1637DisplayDecimal(int2Time(asgClock.redTime), 1, RED);
-	tm1637DisplayDecimal(int2Time(asgClock.blueTime), 1, BLUE);
+	tmRed.display(int2Time(asgClock.redTime));
+	tmRed.colonOn();
+	tmBlu.display(int2Time(asgClock.blueTime));
+	tmBlu.colonOn();
 
 	for(int8_t i = 0; i < 8; i++) {
-		HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, 1);
-		HAL_Delay(500);
-		HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, 0);
-		HAL_Delay(500);
+		digitalWrite(BUZZER_PIN, 1);
+		vTaskDelay(500);
+		digitalWrite(BUZZER_PIN, 0);
+		vTaskDelay(500);
 	}
 
-	tm1637SetBrightness(1);
+	tmRed.setBrightness(1);
+	tmBlu.setBrightness(1);
 	while(1) {
 
-		HAL_Delay(50);
+		vTaskDelay(50);
 		if(Button) {
 
 			Button = 0;
 
-			tm1637SetBrightness(5);
+			tmRed.setBrightness(5);
+			tmBlu.setBrightness(5);
 
-			HAL_Delay(8000);
-			tm1637SetBrightness(1);
+			vTaskDelay(8000);
+			tmRed.setBrightness(1);
+			tmBlu.setBrightness(1);
 		}
 	}
 }
@@ -122,15 +148,14 @@ void displayDark(int *czasJasny) {
 
 	if(*czasJasny > 0) {
 
-		tm1637SetBrightness(asgClock.bright);
+		tmRed.setBrightness(asgClock.bright);
+		tmBlu.setBrightness(asgClock.bright);
 		(*czasJasny)--;
 	}
 	else {
 
-		tm1637SetBrightness(1);
+		tmRed.setBrightness(1);
+		tmBlu.setBrightness(1);
 		przyciemniony = 1;
 	}
 }
-
-
-

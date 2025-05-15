@@ -1,5 +1,7 @@
 #include "keybrd.h"
 
+_Bool Button;
+
 /*!
  * \brief Funkcja structureInit służy do ustawienia początkowych wartości zmiennych z globalnej struktury
  *
@@ -23,5 +25,6 @@ void structureInit(void) {
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 
-	if(GPIO_Pin == Przycisk_Pin) Button = 1;
+	//if(GPIO_Pin == Przycisk_Pin) Button = 1;
+	// TODO
 }
