@@ -50,11 +50,6 @@ void addPoint(_Bool ifRed) {
 		else asgClock.blueTime++;
 		asgClock.gameStarted = 1;
 	}
-
-	tmRed.display(int2Time(asgClock.redTime));
-	tmRed.colonOn();
-	tmBlu.display(int2Time(asgClock.blueTime));
-	tmBlu.colonOn();
 }
 
 /***************************************************************************************/
@@ -77,9 +72,9 @@ void winGame(_Bool ifRed) {
 	if(ifRed) ledControl(500, 0, 0);
 	else ledControl(0, 0, 500);
 
-	tmRed.display(int2Time(asgClock.redTime));
+	tmRed.display(val2Str(int2Time(asgClock.redTime)));
 	tmRed.colonOn();
-	tmBlu.display(int2Time(asgClock.blueTime));
+	tmBlu.display(val2Str(int2Time(asgClock.blueTime)));
 	tmBlu.colonOn();
 
 	for(int8_t i = 0; i < 8; i++) {
@@ -94,9 +89,7 @@ void winGame(_Bool ifRed) {
 	while(1) {
 
 		vTaskDelay(50);
-		if(Button) {
-
-			Button = 0;
+		if(!digitalRead(RED_BUTTON_PIN) || !digitalRead(BLU_BUTTON_PIN)) {
 
 			tmRed.setBrightness(5);
 			tmBlu.setBrightness(5);
@@ -120,10 +113,14 @@ void checkPoint(void) {
 
 	asgClock.ledGoinBack = 0;
 
-
 	if(asgClock.potenValue < 100) addPoint(RED);
 
 	if(asgClock.potenValue > GAME_RANGE - 100) addPoint(BLUE);
+
+	tmRed.display(val2Str(int2Time(asgClock.redTime)));
+	tmRed.colonOn();
+	tmBlu.display(val2Str(int2Time(asgClock.blueTime)));
+	tmBlu.colonOn();
 
 	if(asgClock.gameStarted) {
 
@@ -139,18 +136,13 @@ void checkPoint(void) {
 
 /***************************************************************************************/
 
-void displayDark(int *czasJasny) {
+void displayDark(int czasJasny) {
 
-	if(Button) {
-		*czasJasny = 15;
-		Button = 0;
-	}
-
-	if(*czasJasny > 0) {
+	if(czasJasny > 0) {
 
 		tmRed.setBrightness(asgClock.bright);
 		tmBlu.setBrightness(asgClock.bright);
-		(*czasJasny)--;
+		przyciemniony = 0;
 	}
 	else {
 

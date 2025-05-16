@@ -20,9 +20,7 @@ void setupAll(void) {
 	uint8_t i;
 	structureInit();
 
-	/*HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
-	HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_2);
-	HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_3);
+	/*
 	HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_ALL);*/
 	// TODO
 
@@ -88,6 +86,34 @@ void dispBlink(_Bool ifRed) {
 
 /***************************************************************************************/
 
+bool both_buttons_pressed() {
+
+	if (!digitalRead(RED_BUTTON_PIN) || !digitalRead(BLU_BUTTON_PIN)) {
+
+		for (uint8_t i = 0; i < 20; i++) {
+			vTaskDelay(10);
+			if (!digitalRead(RED_BUTTON_PIN) && !digitalRead(BLU_BUTTON_PIN)) {
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
+/***************************************************************************************/
+
+String val2Str(uint16_t value) {
+
+	if (value < 10) return String(" 00") + String(value);
+	if (value < 100) return String(" 0") + String(value);
+	if (value < 1000) return String(" ") + String(value);
+
+	return String(value);
+}
+
+/***************************************************************************************/
+
 /*!
  * \brief Funkcja setTime służy do ustawienia czasu dla poszczególnej drużyny. Jest wywoływana w setupAll
  *
@@ -99,58 +125,56 @@ void dispBlink(_Bool ifRed) {
 void setTime(_Bool ifRed) {
 
 	vTaskDelay(250);
-	uint16_t stare = 0; // TODO
-
 	dispBlink(ifRed);
 
-	uint32_t tickStart = millis();
-	while(!Button) {
+	bool colon;
+	while (!both_buttons_pressed()) {
 
+		if (!digitalRead(RED_BUTTON_PIN)) {
 
-		int TimerDif = 0; // TODO
-		stare = 0; // TODO
+			if(ifRed) asgClock.redTime -= 30;
+			else asgClock.blueTime -= 30;
+		}
+		else if (!digitalRead(BLU_BUTTON_PIN)) {
 
-		if(ifRed) asgClock.redTime -= ((int8_t)TimerDif)*10;
-		else asgClock.blueTime -= ((int8_t)TimerDif)*10;
+			if(ifRed) asgClock.redTime += 30;
+			else asgClock.blueTime += 30;
+		}
 
-
-		if(asgClock.redTime < 0) asgClock.redTime = 0;
+		if(asgClock.redTime < 30) asgClock.redTime = 30;
 		if(asgClock.redTime > 5940) asgClock.redTime = 5940;
-
-		if(asgClock.blueTime < 0) asgClock.blueTime = 0;
+		if(asgClock.blueTime < 30) asgClock.blueTime = 30;
 		if(asgClock.blueTime > 5940) asgClock.blueTime = 5940;
 
+		if(ifRed) {
+			tmRed.display(val2Str(int2Time(asgClock.redTime)));
 
-
-		if(millis() - tickStart > 250 && millis() - tickStart <= 500) {
-
-			if(ifRed) {
-				tmRed.display(int2Time(asgClock.redTime));
+			if (colon) {
 				tmRed.colonOff();
+				colon = false;
 			}
 			else {
-				tmBlu.display(int2Time(asgClock.blueTime));
-				tmBlu.colonOff();
-			}
-		}
-
-		else if(millis() - tickStart > 500) {
-
-			if(ifRed) {
-				tmRed.display(int2Time(asgClock.redTime));
 				tmRed.colonOn();
+				colon = true;
+			}
+		}
+		else {
+			tmBlu.display(val2Str(int2Time(asgClock.blueTime)));
+
+			if (colon) {
+				tmBlu.colonOff();
+				colon = false;
 			}
 			else {
-				tmBlu.display(int2Time(asgClock.blueTime));
 				tmBlu.colonOn();
+				colon = true;
 			}
-			tickStart = millis();
 		}
+		vTaskDelay(100);
 	}
 
 	buzzerBeep(2);
 	vTaskDelay(BUTTON_DELAY);
-	Button = 0;
 }
 
 /***************************************************************************************/
@@ -158,43 +182,40 @@ void setTime(_Bool ifRed) {
 void setAllTime(void) {
 
 	vTaskDelay(250);
-	uint16_t stare = 0; // TODO
 
-	uint32_t tickStart = millis();
-	while(!Button) {
+	bool colon;
+	while (!both_buttons_pressed()) {
 
+		if (!digitalRead(RED_BUTTON_PIN)) {
 
-		int TimerDif = 0; // TODO
-		stare = 0; // TODO
+			asgClock.gameModeUp -= 30;
+		}
+		else if (!digitalRead(BLU_BUTTON_PIN)) {
 
-		asgClock.gameModeUp -= ((int8_t)TimerDif)*10;
+			asgClock.gameModeUp += 30;
+		}
 
-
-		if(asgClock.gameModeUp < 10) asgClock.gameModeUp = 10;
+		if(asgClock.gameModeUp < 30) asgClock.gameModeUp = 30;
 		if(asgClock.gameModeUp > 5940) asgClock.gameModeUp = 5940;
 
+		tmRed.display(val2Str(int2Time(asgClock.gameModeUp)));
+		tmBlu.display(val2Str(int2Time(asgClock.gameModeUp)));
 
-		if(millis() - tickStart > 250 && millis() - tickStart <= 500) {
-
-			tmRed.display(int2Time(asgClock.gameModeUp));
+		if (colon) {
 			tmRed.colonOff();
-			tmBlu.display(int2Time(asgClock.gameModeUp));
 			tmBlu.colonOff();
+			colon = false;
 		}
-
-		else if(millis() - tickStart > 500) {
-
-			tmRed.display(int2Time(asgClock.gameModeUp));
+		else {
 			tmRed.colonOn();
-			tmBlu.display(int2Time(asgClock.gameModeUp));
 			tmBlu.colonOn();
-			tickStart = millis();
+			colon = true;
 		}
+		vTaskDelay(100);
 	}
 
 	buzzerBeep(2);
 	vTaskDelay(BUTTON_DELAY);
-	Button = 0;
 
 	asgClock.redTime = 1;
 	asgClock.blueTime = 1;
@@ -216,10 +237,9 @@ void ledControl(uint16_t R, uint16_t G, uint16_t B) {
 
 	if(R <= 1000 && G <= 1000 && B <= 1000) {
 
-		/*__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, B);
-		__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_2, R);
-		__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_3, G);*/
-		// TODO
+		ledcWrite(LED_R_CHANNEL, R);
+		ledcWrite(LED_G_CHANNEL, G);
+		ledcWrite(LED_B_CHANNEL, B);
 	}
 }
 
@@ -245,7 +265,7 @@ void sterLed(void) {
 		ledControl(ledB, ledB, ledB);
 	}
 
-	vTaskDelay(1);
+	vTaskDelay(2);
 	if(asgClock.ledGoinBack) asgClock.ledState -= 4;
 	else asgClock.ledState += 4;
 }
@@ -255,41 +275,30 @@ void sterLed(void) {
 void setGameMode(void) {
 
 	uint16_t stare = 0; // TODO
-	unsigned char Tab[] = {17, 0, 17, 17};
+	unsigned char Tab[] = "  A ";
 	tmRed.setBrightness(asgClock.bright);
 	tmBlu.setBrightness(asgClock.bright);
 
-	while(!Button) {
+	tmRed.display("  A ");
+	tmBlu.display("  b ");
 
+	while (1) {
 
-		int TimerDif = 0; // TODO
-		stare = 0; // TODO
+		if (!digitalRead(RED_BUTTON_PIN)) {
 
-		asgClock.bright -= ((int8_t)TimerDif)/4;
-
-
-		if(asgClock.bright < 1) asgClock.bright = 1;
-		if(asgClock.bright > 2) asgClock.bright = 2;
-
-
-		if(asgClock.bright == 1) {
 			asgClock.gameModeUp = 0;
-			Tab[1] = 10;
+			break;
 		}
-		else {
-			asgClock.gameModeUp = 1;
-			Tab[1] = 11;
-		}
+		else if (!digitalRead(BLU_BUTTON_PIN)) {
 
-		tmRed.displayRawBytes(Tab, 4);
-		tmBlu.displayRawBytes(Tab, 4);
-		vTaskDelay(50);
+			asgClock.gameModeUp = 1;
+			break;
+		}
 	}
 
 	buzzerBeep(2);
 	vTaskDelay(BUTTON_DELAY);
 	asgClock.bright = 5;
-	Button = 0;
 }
 
 /***************************************************************************************/

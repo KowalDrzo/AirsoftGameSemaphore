@@ -16,4 +16,6 @@ void setGameMode(void);
 
 uint16_t int2Time(uint16_t integer);
 
+String val2Str(uint16_t value);
+
 #endif

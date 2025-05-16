@@ -10,6 +10,6 @@ void winGame(_Bool ifRed);
 
 void checkPoint(void);
 
-void displayDark(int *czasJasny);
+void displayDark(int czasJasny);
 
 #endif
