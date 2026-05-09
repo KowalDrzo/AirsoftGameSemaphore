@@ -1,7 +1,7 @@
 #ifndef PINOUT_H
 #define PINOUT_H
 
-#define BUZZER_PIN 7
+#define BUZZER_PIN 0
 
 #define RED_BUTTON_PIN 1
 #define BLU_BUTTON_PIN 2

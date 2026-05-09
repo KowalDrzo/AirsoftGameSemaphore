@@ -86,6 +86,8 @@ void winGame(_Bool ifRed) {
 
 	tmRed.setBrightness(1);
 	tmBlu.setBrightness(1);
+	tmRed.colonOn();
+	tmBlu.colonOn();
 	while(1) {
 
 		vTaskDelay(50);
@@ -93,10 +95,14 @@ void winGame(_Bool ifRed) {
 
 			tmRed.setBrightness(5);
 			tmBlu.setBrightness(5);
+			tmRed.colonOn();
+			tmBlu.colonOn();
 
 			vTaskDelay(8000);
 			tmRed.setBrightness(1);
 			tmBlu.setBrightness(1);
+			tmRed.colonOn();
+			tmBlu.colonOn();
 		}
 	}
 }
