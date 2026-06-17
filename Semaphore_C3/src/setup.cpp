@@ -38,8 +38,19 @@ void setupAll(void) {
 	setGameMode();
 
 	if(!asgClock.gameModeUp) {
+
+		if (savedTimes.redTime > 0 && savedTimes.redTime < 6000
+			&& savedTimes.blueTime > 0 && savedTimes.blueTime < 6000) {
+
+			asgClock.redTime = savedTimes.redTime ;
+			asgClock.blueTime = savedTimes.blueTime;
+		}
+
 		setTime(RED);
 		setTime(BLUE);
+
+		savedTimes.redTime = asgClock.redTime;
+		savedTimes.blueTime = asgClock.blueTime;
 	}
 	else setAllTime();
 
@@ -182,6 +193,9 @@ void setTime(_Bool ifRed) {
 void setAllTime(void) {
 
 	vTaskDelay(250);
+	if (savedTimes.bothTime > 0 && savedTimes.bothTime < 6000) {
+		asgClock.gameModeUp = savedTimes.bothTime;
+	}
 
 	bool colon;
 	while (!both_buttons_pressed()) {
@@ -219,6 +233,8 @@ void setAllTime(void) {
 
 	asgClock.redTime = 1;
 	asgClock.blueTime = 1;
+
+	savedTimes.bothTime = asgClock.gameModeUp;
 }
 
 /***************************************************************************************/

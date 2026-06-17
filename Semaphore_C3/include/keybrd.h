@@ -25,6 +25,13 @@ struct AirsoftClock {
 
 };
 
+struct SavedTimes {
+
+	short int redTime;
+	short int blueTime;
+	short int bothTime;
+};
+
 /* Lista funkcji dostępnych publicznie */
 
 void structureInit(void);
@@ -34,6 +41,7 @@ extern _Bool Button;
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin);
 
 extern AirsoftClock asgClock;
+extern SavedTimes savedTimes;
 extern TM1637 tmRed;
 extern TM1637 tmBlu;
 

@@ -2,16 +2,21 @@
 #include "keybrd.h"
 #include "points.h"
 #include "setup.h"
+#include "EEPROM.h"
 
 TM1637 tmRed(RED_CLK_PIN, RED_DIO_PIN);
 TM1637 tmBlu(BLU_CLK_PIN, BLU_DIO_PIN);
 AirsoftClock asgClock;
+SavedTimes savedTimes;
 uint32_t timer1 = 0;
 int czasJasny = 3;
 
 void setup() {
 
     delay(100);
+    
+    EEPROM.begin(sizeof(SavedTimes));
+    EEPROM.get(0, savedTimes);
 
     pinMode(BUZZER_PIN, OUTPUT);
     
@@ -34,6 +39,9 @@ void setup() {
     tmBlu.begin();
 
     setupAll();
+
+    EEPROM.put(0, savedTimes);
+    EEPROM.commit();
 }
 
 void loop() {
