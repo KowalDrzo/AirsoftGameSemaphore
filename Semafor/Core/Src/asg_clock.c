@@ -16,6 +16,6 @@ void structureInit(void) {
 	asgClock.redTime = 0;
 	asgClock.matchTime = 0;
 	asgClock.potenValue = NEUTRAL;
-	asgClock.gameMode = 0;
+	asgClock.gameMode = GAME_MODE_A;
 	asgClock.gameStarted = 0;
 }

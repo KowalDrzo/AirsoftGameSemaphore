@@ -117,12 +117,7 @@ int main(void)
 
 	sterLed();
 
-	if (!HAL_GPIO_ReadPin(RED_BUTTON_GPIO_Port, RED_BUTTON_Pin)) {
-		asgClock.potenValue = RED;
-		czasJasny = 15;
-	}
-	if (!HAL_GPIO_ReadPin(BLUE_BUTTON_GPIO_Port, BLUE_BUTTON_Pin)) {
-		asgClock.potenValue = BLUE;
+	if (processButtons()) {
 		czasJasny = 15;
 	}
     /* USER CODE END WHILE */

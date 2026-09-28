@@ -7,6 +7,7 @@ static int16_t lastRedTime = -1;
 static int16_t lastBlueTime = -1;
 static uint16_t redMmss;
 static uint16_t blueMmss;
+static _Bool modeCStayDim;
 
 static void ledsOff(void) {
 	GPIOA->BSRR = (uint32_t)LED_ALL_PINS << 16;
@@ -48,13 +49,13 @@ void addPoint(_Bool ifRed) {
 
 	int16_t *time = ifRed ? &asgClock.redTime : &asgClock.blueTime;
 
-	if (!asgClock.gameMode) {
+	if (asgClock.gameMode == GAME_MODE_A) {
 		if (*time > 0) {
 			(*time)--;
 		} else {
 			winGame(ifRed);
 		}
-	} else {
+	} else if (asgClock.gameMode == GAME_MODE_B) {
 		(*time)++;
 		asgClock.gameStarted = 1;
 	}
@@ -72,7 +73,7 @@ void addPoint(_Bool ifRed) {
 
 void winGame(_Bool ifRed) {
 
-	if (!asgClock.gameMode) {
+	if (asgClock.gameMode == GAME_MODE_A) {
 		if (ifRed) {
 			asgClock.redTime = 0;
 		} else {
@@ -118,7 +119,36 @@ void winGame(_Bool ifRed) {
  * Funkcja nie przyjmuje ani nie zwraca żadnych wartości.
  */
 
+static void modeCBuzzerTick(void) {
+
+	static uint16_t seconds;
+
+	seconds++;
+	if (seconds < MODE_C_BUZZER_PERIOD_S) {
+		return;
+	}
+	seconds = 0;
+
+	setBrightnessCached(asgClock.bright);
+	HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, GPIO_PIN_SET);
+	HAL_Delay(MODE_C_BUZZER_ON_MS);
+	HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, GPIO_PIN_RESET);
+	setBrightnessCached(1);
+	modeCStayDim = 1;
+}
+
+static void showModeCScore(void) {
+
+	tm1637DisplayDecimal((uint16_t)asgClock.redTime, 0, RED);
+	tm1637DisplayDecimal((uint16_t)asgClock.blueTime, 0, BLUE);
+}
+
 void checkPoint(void) {
+
+	if (asgClock.gameMode == GAME_MODE_C) {
+		modeCBuzzerTick();
+		return;
+	}
 
 	if (asgClock.potenValue == RED) {
 		addPoint(RED);
@@ -143,10 +173,19 @@ void checkPoint(void) {
 
 void displayDark(int czasJasny) {
 
+	if (asgClock.gameMode == GAME_MODE_C && modeCStayDim) {
+		setBrightnessCached(1);
+		return;
+	}
 	setBrightnessCached((czasJasny > 0) ? asgClock.bright : 1);
 }
 
 void sterLed(void) {
+
+	if (asgClock.gameMode == GAME_MODE_C) {
+		ledsOff();
+		return;
+	}
 
 	static uint32_t lastFlip;
 	static _Bool colon;
@@ -171,4 +210,43 @@ void sterLed(void) {
 	} else {
 		GPIOA->BSRR = LED_ALL_PINS;
 	}
+}
+
+_Bool processButtons(void) {
+
+	_Bool redDown = !HAL_GPIO_ReadPin(RED_BUTTON_GPIO_Port, RED_BUTTON_Pin);
+	_Bool blueDown = !HAL_GPIO_ReadPin(BLUE_BUTTON_GPIO_Port, BLUE_BUTTON_Pin);
+
+	if (asgClock.gameMode != GAME_MODE_C) {
+		if (redDown) {
+			asgClock.potenValue = RED;
+		}
+		if (blueDown) {
+			asgClock.potenValue = BLUE;
+		}
+		return redDown || blueDown;
+	}
+
+	static _Bool redWasDown = 1;
+	static _Bool blueWasDown = 1;
+	_Bool scored = 0;
+
+	if (redDown && !redWasDown && asgClock.redTime < MODE_C_SCORE_MAX) {
+		asgClock.redTime++;
+		scored = 1;
+	}
+	if (blueDown && !blueWasDown && asgClock.blueTime < MODE_C_SCORE_MAX) {
+		asgClock.blueTime++;
+		scored = 1;
+	}
+
+	redWasDown = redDown;
+	blueWasDown = blueDown;
+
+	if (scored) {
+		modeCStayDim = 0;
+		showModeCScore();
+	}
+
+	return scored;
 }

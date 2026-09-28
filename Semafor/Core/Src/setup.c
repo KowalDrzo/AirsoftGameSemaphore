@@ -138,8 +138,8 @@ static void setAllTime(void) {
 
 static void setGameMode(void) {
 
-	unsigned char tabA[] = {16, 10, 16, 16};
-	unsigned char tabB[] = {16, 11, 16, 16};
+	unsigned char tabA[] = {16, 10, 16, 12};
+	unsigned char tabB[] = {16, 11, 16, 12};
 
 	tm1637SetBrightness(asgClock.bright);
 
@@ -147,18 +147,36 @@ static void setGameMode(void) {
 	tm1637DisplayTab(tabB, 0, BLUE);
 
 	while (1) {
-		if (!HAL_GPIO_ReadPin(RED_BUTTON_GPIO_Port, RED_BUTTON_Pin)) {
-			asgClock.gameMode = 0;
+		_Bool redDown = !HAL_GPIO_ReadPin(RED_BUTTON_GPIO_Port, RED_BUTTON_Pin);
+		_Bool blueDown = !HAL_GPIO_ReadPin(BLUE_BUTTON_GPIO_Port, BLUE_BUTTON_Pin);
+
+		if (!redDown && !blueDown) {
+			continue;
+		}
+
+		HAL_Delay(80);
+		redDown = !HAL_GPIO_ReadPin(RED_BUTTON_GPIO_Port, RED_BUTTON_Pin);
+		blueDown = !HAL_GPIO_ReadPin(BLUE_BUTTON_GPIO_Port, BLUE_BUTTON_Pin);
+
+		if (redDown && blueDown) {
+			asgClock.gameMode = GAME_MODE_C;
 			break;
 		}
-		if (!HAL_GPIO_ReadPin(BLUE_BUTTON_GPIO_Port, BLUE_BUTTON_Pin)) {
-			asgClock.gameMode = 1;
+		if (redDown) {
+			asgClock.gameMode = GAME_MODE_A;
+			break;
+		}
+		if (blueDown) {
+			asgClock.gameMode = GAME_MODE_B;
 			break;
 		}
 	}
 
 	buzzerBeep(2);
 	HAL_Delay(BUTTON_DELAY);
+	while (!HAL_GPIO_ReadPin(RED_BUTTON_GPIO_Port, RED_BUTTON_Pin)
+		|| !HAL_GPIO_ReadPin(BLUE_BUTTON_GPIO_Port, BLUE_BUTTON_Pin)) {
+	}
 	asgClock.bright = 5;
 }
 
@@ -178,7 +196,7 @@ void setupAll(void) {
 
 	setGameMode();
 
-	if (!asgClock.gameMode) {
+	if (asgClock.gameMode == GAME_MODE_A) {
 		if (savedTimes.redTime > 0 && savedTimes.redTime < 6000
 			&& savedTimes.blueTime > 0 && savedTimes.blueTime < 6000) {
 
@@ -191,21 +209,29 @@ void setupAll(void) {
 
 		savedTimes.redTime = asgClock.redTime;
 		savedTimes.blueTime = asgClock.blueTime;
-	} else {
+	} else if (asgClock.gameMode == GAME_MODE_B) {
 		setAllTime();
 	}
 
-	if (!asgClock.redTime) {
-		asgClock.redTime++;
-	}
-	if (!asgClock.blueTime) {
-		asgClock.blueTime++;
+	if (asgClock.gameMode != GAME_MODE_C) {
+		if (!asgClock.redTime) {
+			asgClock.redTime++;
+		}
+		if (!asgClock.blueTime) {
+			asgClock.blueTime++;
+		}
 	}
 
 	HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, 1);
 	HAL_Delay(500);
 	HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, 0);
 
-	tm1637DisplayDecimal(int2Time((uint16_t)asgClock.redTime), 1, RED);
-	tm1637DisplayDecimal(int2Time((uint16_t)asgClock.blueTime), 1, BLUE);
+	if (asgClock.gameMode == GAME_MODE_C) {
+		tm1637DisplayDecimal(0, 0, RED);
+		tm1637DisplayDecimal(0, 0, BLUE);
+		GPIOA->BSRR = (uint32_t)(LED_R_Pin | LED_B_Pin | LED_G_Pin) << 16;
+	} else {
+		tm1637DisplayDecimal(int2Time((uint16_t)asgClock.redTime), 1, RED);
+		tm1637DisplayDecimal(int2Time((uint16_t)asgClock.blueTime), 1, BLUE);
+	}
 }

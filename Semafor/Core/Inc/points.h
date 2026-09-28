@@ -13,4 +13,6 @@ void displayDark(int czasJasny);
 
 void sterLed(void);
 
+_Bool processButtons(void);
+
 #endif /* INC_POINTS_H_ */
