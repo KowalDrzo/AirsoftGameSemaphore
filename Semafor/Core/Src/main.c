@@ -108,7 +108,9 @@ int main(void)
 
 	  checkPoint(); // Sprawdzanie, która drużyna przejęła cel i reagowanie na to
 	  displayDark(czasJasny);
-	  czasJasny--;
+	  if (czasJasny > 0) {
+		  czasJasny--;
+	  }
 
 	  tickStart = HAL_GetTick();
 	}
