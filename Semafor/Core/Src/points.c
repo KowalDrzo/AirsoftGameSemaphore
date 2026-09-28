@@ -233,9 +233,11 @@ _Bool processButtons(void) {
 
 	if (redDown && !redWasDown && asgClock.redTime < MODE_C_SCORE_MAX) {
 		asgClock.redTime++;
+		HAL_GPIO_WritePin(LED_R_GPIO_Port, LED_R_Pin, 1);
 		scored = 1;
 	}
 	if (blueDown && !blueWasDown && asgClock.blueTime < MODE_C_SCORE_MAX) {
+		HAL_GPIO_WritePin(LED_B_GPIO_Port, LED_B_Pin, 1);
 		asgClock.blueTime++;
 		scored = 1;
 	}
