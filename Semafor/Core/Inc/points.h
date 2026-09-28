@@ -11,6 +11,6 @@ void checkPoint(void);
 
 void displayDark(int czasJasny);
 
-void sterLed();
+void sterLed(void);
 
 #endif /* INC_POINTS_H_ */

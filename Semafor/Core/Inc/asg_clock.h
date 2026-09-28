@@ -8,33 +8,25 @@
 #define NEUTRAL -1
 
 typedef struct {
-
 	int16_t redTime;
 	int16_t blueTime;
+	int16_t matchTime;
 	int8_t bright;
 	int8_t potenValue;
-
-	int16_t ledState;
-	_Bool ledGoinBack;
-	int16_t gameModeUp;
+	_Bool gameMode;
 	_Bool gameStarted;
-
 } AirsoftClock;
 
 typedef struct {
-
 	int16_t redTime;
 	int16_t blueTime;
 	int16_t bothTime;
 	int16_t magic;
 } SavedTimes;
 
-/* Lista funkcji dostępnych publicznie */
-
 void structureInit(void);
 
 extern AirsoftClock asgClock;
 extern SavedTimes savedTimes;
-
 
 #endif /* INC_ASG_CLOCK_H_ */

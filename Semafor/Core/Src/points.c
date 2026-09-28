@@ -1,5 +1,41 @@
 #include "points.h"
 
+#define LED_ALL_PINS (LED_R_Pin | LED_B_Pin | LED_G_Pin)
+
+static int8_t lastBrightness = -1;
+static int16_t lastRedTime = -1;
+static int16_t lastBlueTime = -1;
+static uint16_t redMmss;
+static uint16_t blueMmss;
+
+static void ledsOff(void) {
+	GPIOA->BSRR = (uint32_t)LED_ALL_PINS << 16;
+}
+
+static void setBrightnessCached(int8_t brightness) {
+	if (brightness == lastBrightness) {
+		return;
+	}
+	lastBrightness = brightness;
+	tm1637SetBrightness(brightness);
+}
+
+static uint16_t mmssRed(void) {
+	if (asgClock.redTime != lastRedTime) {
+		lastRedTime = asgClock.redTime;
+		redMmss = int2Time((uint16_t)asgClock.redTime);
+	}
+	return redMmss;
+}
+
+static uint16_t mmssBlue(void) {
+	if (asgClock.blueTime != lastBlueTime) {
+		lastBlueTime = asgClock.blueTime;
+		blueMmss = int2Time((uint16_t)asgClock.blueTime);
+	}
+	return blueMmss;
+}
+
 /*!
  * \brief Funkcja addPoint służy do odjęcia sekundy czasu odpowiedniej drużynie
  *
@@ -10,25 +46,16 @@
 
 void addPoint(_Bool ifRed) {
 
-	if(!asgClock.gameModeUp) {
+	int16_t *time = ifRed ? &asgClock.redTime : &asgClock.blueTime;
 
-		if(ifRed) {
-
-			if(asgClock.redTime > 0) asgClock.redTime--;
-			else winGame(RED);
+	if (!asgClock.gameMode) {
+		if (*time > 0) {
+			(*time)--;
+		} else {
+			winGame(ifRed);
 		}
-
-		else {
-
-			if(asgClock.blueTime > 0) asgClock.blueTime--;
-			else winGame(BLUE);
-		}
-	}
-
-	else {
-
-		if(ifRed) asgClock.redTime++;
-		else asgClock.blueTime++;
+	} else {
+		(*time)++;
 		asgClock.gameStarted = 1;
 	}
 }
@@ -45,41 +72,40 @@ void addPoint(_Bool ifRed) {
 
 void winGame(_Bool ifRed) {
 
-	if(!asgClock.gameModeUp) {
-		if(ifRed) asgClock.redTime = 0;
-		else asgClock.blueTime = 0;
+	if (!asgClock.gameMode) {
+		if (ifRed) {
+			asgClock.redTime = 0;
+		} else {
+			asgClock.blueTime = 0;
+		}
 	}
 
-	if(ifRed) {
-		HAL_GPIO_WritePin(LED_R_GPIO_Port, LED_R_Pin, 1);
-		HAL_GPIO_WritePin(LED_B_GPIO_Port, LED_B_Pin, 0);
-	}
-	else {
-		HAL_GPIO_WritePin(LED_R_GPIO_Port, LED_R_Pin, 0);
-		HAL_GPIO_WritePin(LED_B_GPIO_Port, LED_B_Pin, 1);
+	if (ifRed) {
+		GPIOA->BSRR = LED_R_Pin | ((uint32_t)(LED_B_Pin | LED_G_Pin) << 16);
+	} else {
+		GPIOA->BSRR = LED_B_Pin | ((uint32_t)(LED_R_Pin | LED_G_Pin) << 16);
 	}
 
-	tm1637DisplayDecimal(int2Time(asgClock.redTime), 1, RED);
-	tm1637DisplayDecimal(int2Time(asgClock.blueTime), 1, BLUE);
+	tm1637DisplayDecimal(mmssRed(), 1, RED);
+	tm1637DisplayDecimal(mmssBlue(), 1, BLUE);
 
-	for(int8_t i = 0; i < 8; i++) {
-
+	for (int8_t i = 0; i < 8; i++) {
 		HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, 1);
 		HAL_Delay(500);
 		HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, 0);
 		HAL_Delay(500);
 	}
 
-	tm1637SetBrightness(1);
+	setBrightnessCached(1);
 
-	while(1) {
-
+	while (1) {
 		HAL_Delay(50);
-		if(!HAL_GPIO_ReadPin(RED_BUTTON_GPIO_Port, RED_BUTTON_Pin) || !HAL_GPIO_ReadPin(BLUE_BUTTON_GPIO_Port, BLUE_BUTTON_Pin)) {
+		if (!HAL_GPIO_ReadPin(RED_BUTTON_GPIO_Port, RED_BUTTON_Pin)
+			|| !HAL_GPIO_ReadPin(BLUE_BUTTON_GPIO_Port, BLUE_BUTTON_Pin)) {
 
-			tm1637SetBrightness(asgClock.bright);
+			setBrightnessCached(asgClock.bright);
 			HAL_Delay(8000);
-			tm1637SetBrightness(1);
+			setBrightnessCached(1);
 		}
 	}
 }
@@ -94,22 +120,21 @@ void winGame(_Bool ifRed) {
 
 void checkPoint(void) {
 
-	asgClock.ledGoinBack = 0;
+	if (asgClock.potenValue == RED) {
+		addPoint(RED);
+	} else if (asgClock.potenValue == BLUE) {
+		addPoint(BLUE);
+	}
 
-	if(asgClock.potenValue == RED) addPoint(RED);
-	if(asgClock.potenValue == BLUE) addPoint(BLUE);
+	if (asgClock.gameStarted) {
+		asgClock.matchTime--;
 
-	//tm1637DisplayDecimal(int2Time(asgClock.redTime), 1, RED);
-	//tm1637DisplayDecimal(int2Time(asgClock.blueTime), 1, BLUE);
-
-	if(asgClock.gameStarted) {
-
-		asgClock.gameModeUp--;
-
-		if(asgClock.gameModeUp == 1) {
-
-			if(asgClock.redTime > asgClock.blueTime) winGame(RED);
-			else winGame(BLUE);
+		if (asgClock.matchTime == 1) {
+			if (asgClock.redTime > asgClock.blueTime) {
+				winGame(RED);
+			} else {
+				winGame(BLUE);
+			}
 		}
 	}
 }
@@ -118,47 +143,32 @@ void checkPoint(void) {
 
 void displayDark(int czasJasny) {
 
-	if(czasJasny > 0) tm1637SetBrightness(asgClock.bright);
-	else tm1637SetBrightness(1);
+	setBrightnessCached((czasJasny > 0) ? asgClock.bright : 1);
 }
 
-_Bool colon;
+void sterLed(void) {
 
-void sterLed(void)
-{
-    _Bool newColon = (HAL_GetTick() % 1000) >= 500;
+	static uint32_t lastFlip;
+	static _Bool colon;
 
-    if (newColon != colon)
-    {
-        colon = newColon;
+	uint32_t now = HAL_GetTick();
+	if ((now - lastFlip) < 500u) {
+		return;
+	}
+	lastFlip = now;
+	colon = !colon;
 
-        if (colon)
-        {
-            tm1637DisplayDecimal(int2Time(asgClock.redTime), 1, RED);
-            tm1637DisplayDecimal(int2Time(asgClock.blueTime), 1, BLUE);
-
-            HAL_GPIO_WritePin(LED_R_GPIO_Port, LED_R_Pin, GPIO_PIN_RESET);
-            HAL_GPIO_WritePin(LED_B_GPIO_Port, LED_B_Pin, GPIO_PIN_RESET);
-            HAL_GPIO_WritePin(LED_G_GPIO_Port, LED_G_Pin, GPIO_PIN_RESET);
-        }
-        else
-        {
-            if (asgClock.potenValue == RED)
-            {
-                tm1637DisplayDecimal(int2Time(asgClock.redTime), 0, RED);
-                HAL_GPIO_WritePin(LED_R_GPIO_Port, LED_R_Pin, GPIO_PIN_SET);
-            }
-            else if (asgClock.potenValue == BLUE)
-            {
-                tm1637DisplayDecimal(int2Time(asgClock.blueTime), 0, BLUE);
-                HAL_GPIO_WritePin(LED_B_GPIO_Port, LED_B_Pin, GPIO_PIN_SET);
-            }
-            else
-            {
-                HAL_GPIO_WritePin(LED_R_GPIO_Port, LED_R_Pin, GPIO_PIN_SET);
-                HAL_GPIO_WritePin(LED_B_GPIO_Port, LED_B_Pin, GPIO_PIN_SET);
-                HAL_GPIO_WritePin(LED_G_GPIO_Port, LED_G_Pin, GPIO_PIN_SET);
-            }
-        }
-    }
+	if (colon) {
+		tm1637DisplayDecimal(mmssRed(), 1, RED);
+		tm1637DisplayDecimal(mmssBlue(), 1, BLUE);
+		ledsOff();
+	} else if (asgClock.potenValue == RED) {
+		tm1637DisplayDecimal(mmssRed(), 0, RED);
+		GPIOA->BSRR = LED_R_Pin;
+	} else if (asgClock.potenValue == BLUE) {
+		tm1637DisplayDecimal(mmssBlue(), 0, BLUE);
+		GPIOA->BSRR = LED_B_Pin;
+	} else {
+		GPIOA->BSRR = LED_ALL_PINS;
+	}
 }

@@ -14,10 +14,8 @@ void structureInit(void) {
 	asgClock.bright = 5;
 	asgClock.blueTime = 0;
 	asgClock.redTime = 0;
-	asgClock.ledState = 0;
-	asgClock.ledGoinBack = 0;
-
+	asgClock.matchTime = 0;
 	asgClock.potenValue = NEUTRAL;
-	asgClock.gameModeUp = 0;
+	asgClock.gameMode = 0;
 	asgClock.gameStarted = 0;
 }

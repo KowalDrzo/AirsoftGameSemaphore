@@ -12,12 +12,14 @@
 #define SETTINGS_MAGIC 2137
 #define BUTTON_DELAY 500
 #define GAME_MODES 2
+#define TIME_STEP 30
+#define TIME_MIN 30
+#define TIME_MAX 5940
 
-void readSavedTimesFromFlash();
+void readSavedTimesFromFlash(void);
 
-void writeSavedTimesToFlash();
+void writeSavedTimesToFlash(void);
 
-void setupAll();
-
+void setupAll(void);
 
 #endif /* INC_SETUP_H_ */
